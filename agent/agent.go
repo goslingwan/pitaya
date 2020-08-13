@@ -298,6 +298,11 @@ func (a *Agent) GetStatus() int32 {
 
 // Kick sends a kick packet to a client
 func (a *Agent) Kick(ctx context.Context) error {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Errorf("Kick panic: %v", e)
+		}
+	}()
 	// packet encode
 	p, err := a.encoder.Encode(packet.Kick, nil)
 	if err != nil {
@@ -353,6 +358,9 @@ func (a *Agent) heartbeat() {
 	ticker := time.NewTicker(a.heartbeatTimeout)
 
 	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Errorf("heartbeat panic: %v", e)
+		}
 		ticker.Stop()
 		a.Close()
 	}()
@@ -392,6 +400,11 @@ func onSessionClosed(s *session.Session) {
 
 // SendHandshakeResponse sends a handshake response
 func (a *Agent) SendHandshakeResponse() error {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Errorf("SendHandshakeResponse %v", e)
+		}
+	}()
 	_, err := a.conn.Write(hrd)
 	return err
 }
