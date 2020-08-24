@@ -308,8 +308,11 @@ func (a *Agent) Kick(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = a.conn.Write(p)
-	return err
+
+	if _, err := a.conn.Write(p); err != nil {
+		logger.Log.Errorf("Kick Write error: %v", err)
+	}
+	return nil
 }
 
 // SetLastAt sets the last at to now
@@ -412,6 +415,9 @@ func (a *Agent) SendHandshakeResponse() error {
 func (a *Agent) write() {
 	// clean func
 	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Errorf("heartbeat panic: %v", e)
+		}
 		close(a.chSend)
 		a.Close()
 	}()
